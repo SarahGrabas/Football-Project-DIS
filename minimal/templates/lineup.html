@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}Lineup Builder{% endblock %}
+
+{% block content %}
+<h1>Pick Your Lineup (4–3–3)</h1>
+
+{% if not lineup1 %}
+    <h2>Lineup 1</h2>
+{% elif not lineup2 %}
+    <h2>Lineup 2</h2>
+{% else %}
+    <h2>Both lineups are confirmed! Ready for comparison.</h2>
+{% endif %}
+
+{% if not lineup2 %}
+<form method="POST" id="lineupForm">
+    <!-- Team select -->
+    <div class="position-block">
+        <h3>Select Team</h3>
+        <select name="team" required>
+            <option value="" disabled selected>-- Select Team --</option>
+            {% for team in teams %}
+            <option value="{{ team }}">{{ team }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <!-- GK -->
+    <div class="position-block">
+        <h3>Goalkeeper</h3>
+        <select name="gk" class="player-select" required>
+            <option value="" disabled selected>-- Select GK --</option>
+            {% for p in gks %}
+            <option value="{{ p }}">{{ p }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <!-- DF -->
+    <div class="position-block">
+        <h3>Defenders</h3>
+        {% for i in range(4) %}
+        <select name="df{{i}}" class="player-select" required>
+            <option value="" disabled selected>-- Select DF --</option>
+            {% for p in dfs %}
+            <option value="{{ p }}">{{ p }}</option>
+            {% endfor %}
+        </select>
+        {% endfor %}
+    </div>
+
+    <!-- MF -->
+    <div class="position-block">
+        <h3>Midfielders</h3>
+        {% for i in range(3) %}
+        <select name="mf{{i}}" class="player-select" required>
+            <option value="" disabled selected>-- Select MF --</option>
+            {% for p in mfs %}
+            <option value="{{ p }}">{{ p }}</option>
+            {% endfor %}
+        </select>
+        {% endfor %}
+    </div>
+
+    <!-- FW -->
+    <div class="position-block">
+        <h3>Forwards</h3>
+        {% for i in range(3) %}
+        <select name="fw{{i}}" class="player-select" required>
+            <option value="" disabled selected>-- Select FW --</option>
+            {% for p in fws %}
+            <option value="{{ p }}">{{ p }}</option>
+            {% endfor %}
+        </select>
+        {% endfor %}
+    </div>
+
+    <br>
+    <button type="submit">Confirm Lineup</button>
+</form>
+{% endif %}
+
+<script>
+    const selects = document.querySelectorAll('.player-select');
+    selects.forEach(select => {
+        select.addEventListener('change', () => {
+            const selectedValues = Array.from(selects).map(s => s.value);
+            selects.forEach(s => {
+                Array.from(s.options).forEach(opt => {
+                    opt.disabled = selectedValues.includes(opt.value) && s.value !== opt.value;
+                });
+            });
+        });
+    });
+</script>
+{% endblock %}

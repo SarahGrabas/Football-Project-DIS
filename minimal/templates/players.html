@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}Players Table{% endblock %}
+
+{% block content %}
+<h1>Premier League Player Stats</h1>
+<table border="1" style="margin: auto;">
+    <tr>
+        {% for col in rows[0].keys() %}
+            <th>{{ col }}</th>
+        {% endfor %}
+    </tr>
+    {% for row in rows %}
+    <tr>
+        {% for col in row.keys() %}
+            <td>{{ row[col] }}</td>
+        {% endfor %}
+    </tr>
+    {% endfor %}
+</table>
+{% endblock %}

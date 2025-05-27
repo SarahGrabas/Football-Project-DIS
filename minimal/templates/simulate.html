@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+
+{% block title %}Match Simulation{% endblock %}
+
+{% block content %}
+
+
+<style>
+    #log {
+        margin-top: 30px;
+        font-family: monospace;
+        background: #f8f8f8;
+        border: 1px solid #ccc;
+        padding: 15px;
+        height: 300px;
+        overflow-y: auto;
+        white-space: pre-wrap;
+        line-height: 1.4;
+    }
+
+    #start-btn {
+        padding: 10px 20px;
+        font-size: 1em;
+        margin-top: 20px;
+    }
+
+    .score-box {
+        font-size: 2.5em;
+        font-weight: bold;
+        background-color: #f5f5f5;
+        border: 3px solid #007bff;
+        border-radius: 8px;
+        padding: 20px 30px;
+        min-width: 60px;
+        text-align: center;
+        box-shadow: 2px 2px 8px rgba(0,0,0,0.1);
+    }
+
+    #final-score {
+        font-weight: bold;
+        font-size: 1.2em;
+        text-align: center;
+        margin-top: 30px;
+        padding: 10px;
+        background-color: #e0f7fa;
+        border: 2px solid #00acc1;
+        border-radius: 8px;
+        display: none;
+        width: 50%;
+        margin-left: auto;
+        margin-right: auto;
+    }
+</style>
+
+<h1>Match Simulation</h1>
+<button id="start-btn">Start Match</button>
+
+<div id="scoreboard-ui" style="
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  font-family: 'Arial Black', sans-serif;
+  background: linear-gradient(to right, #0033cc 50%, #cc0000 50%);
+  color: white;
+  padding: 15px 40px;
+  border-radius: 12px;
+  font-size: 2.2em;
+  margin-top: 30px;
+  position: relative;
+  width: fit-content;
+  margin-left: auto;
+  margin-right: auto;
+">
+  <span id="team1-abbr">{{ team1_abbr }}</span>
+  <span id="team1-score" style="margin-left: 15px;">0</span>
+
+
+
+  <span id="team2-score">0</span>
+  <span id="team2-abbr" style="margin-left: 15px;">{{ team2_abbr }}</span>
+</div>
+
+
+<div id="log"></div>
+
+<div id="final-score"></div>
+
+<script>
+    document.getElementById("start-btn").addEventListener("click", function () {
+        fetch("/run_simulation")
+            .then(response => response.json())
+            .then(data => {
+                const logEl = document.getElementById("log");
+                const score1El = document.getElementById("team1-score");
+                const score2El = document.getElementById("team2-score");
+                const finalScoreEl = document.getElementById("final-score");
+
+                logEl.innerHTML = "";
+                finalScoreEl.style.display = "none";
+                score1El.innerText = "0";
+                score2El.innerText = "0";
+
+                let i = 0;
+                let team1Score = 0;
+                let team2Score = 0;
+
+                const interval = setInterval(() => {
+                    if (i < data.log.length) {
+                        const line = data.log[i];
+                        logEl.innerHTML += line + "\n";
+                        logEl.scrollTop = logEl.scrollHeight;
+
+                        if (line.includes("scores for Team 1")) {
+                            team1Score++;
+                            score1El.innerText = team1Score;
+                        } else if (line.includes("scores for Team 2")) {
+                            team2Score++;
+                            score2El.innerText = team2Score;
+                        }
+
+                        i++;
+                    } else {
+                        clearInterval(interval);
+                        const finalLine = data.log[data.log.length - 1];
+                        finalScoreEl.innerText = finalLine.replace("🏁", "🏁 Final Score:");
+                        finalScoreEl.style.display = "block";
+                    }
+                }, 150);
+            });
+    });
+</script>
+
+{% endblock %}
