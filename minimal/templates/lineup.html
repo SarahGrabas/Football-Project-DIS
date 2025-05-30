@@ -15,16 +15,12 @@
 
 {% if not lineup2 %}
 <form method="POST" id="lineupForm">
-    <!-- Team select -->
     <div class="position-block">
-        <h3>Select Team</h3>
-        <select name="team" required>
-            <option value="" disabled selected>-- Select Team --</option>
-            {% for team in teams %}
-            <option value="{{ team }}">{{ team }}</option>
-            {% endfor %}
-        </select>
+        <h3>Choose Your Team Name</h3>
+        <input type="text" name="team_name" placeholder="Enter a team name" required size="40" style="font-size: 1.2em; width: 400px; height: 50px;">
     </div>
+
+
 
     <!-- GK -->
     <div class="position-block">

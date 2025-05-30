@@ -85,7 +85,7 @@
     <!-- Left: Lineups -->
     <div>
         <div class="h2h-block team-lineup">
-            <h2 style="text-align: left;">Lineup 1</h2>
+            <h2 style="text-align: left;">{{ team1_name }}</h2>
             <div class="line">
                 <span class="player">GK: {{ team1_data[0]['Player'] }} ({{ team1_data[0]['Nation'].split()[-1] }})</span>
             </div>
@@ -108,7 +108,7 @@
         </div>
 
         <div class="h2h-block team-lineup">
-            <h2 style="text-align: left;">Lineup 2</h2>
+            <h2 style="text-align: left;">{{ team2_name }}</h2>
             <div class="line">
                 <span class="player">GK: {{ team2_data[0]['Player'] }} ({{ team2_data[0]['Nation'].split()[-1] }})</span>
             </div>
@@ -135,9 +135,9 @@
         <h3>General Team Stats</h3>
         <table>
             <tr>
-                <th>Lineup 1</th>
+                <th id="team1_abbr">{{ team1_abbr }}</th>
                 <th>Stat</th>
-                <th>Lineup 2</th>
+                <th id="team2_abbr">{{ team2_abbr }}</th>
             </tr>
             {% for label, values in stats.items() %}
                 {% set val1, val2 = values %}

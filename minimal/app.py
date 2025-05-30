@@ -5,30 +5,33 @@ app = Flask(__name__)
 app.secret_key = 'your_secret_key'
 
 # Abbreviation lookup
-TEAM_ABBR = {
-    "Arsenal": "ARS", "Aston Villa": "AVL", "AFC Bournemouth": "BOU",
-    "Brentford": "BRE", "Brighton & Hove Albion": "BHA", "Burnley": "BUR",
-    "Chelsea": "CHE", "Crystal Palace": "CRY", "Everton": "EVE",
-    "Fulham": "FUL", "Liverpool": "LIV", "Luton Town": "LUT",
-    "Manchester City": "MCI", "Manchester United": "MUN", "Newcastle United": "NEW",
-    "Nottingham Forest": "NFO", "Sheffield United": "SHU", "Tottenham Hotspur": "TOT",
-    "West Ham United": "WHU", "Wolverhampton Wanderers": "WOL"
-}
+# TEAM_ABBR = {
+#     "Arsenal": "ARS", "Aston Villa": "AVL", "AFC Bournemouth": "BOU",
+#     "Brentford": "BRE", "Brighton & Hove Albion": "BHA", "Burnley": "BUR",
+#     "Chelsea": "CHE", "Crystal Palace": "CRY", "Everton": "EVE",
+#     "Fulham": "FUL", "Liverpool": "LIV", "Luton Town": "LUT",
+#     "Manchester City": "MCI", "Manchester United": "MUN", "Newcastle United": "NEW",
+#     "Nottingham Forest": "NFO", "Sheffield United": "SHU", "Tottenham Hotspur": "TOT",
+#     "West Ham United": "WHU", "Wolverhampton Wanderers": "WOL"
+# }
 
 def get_db_connection():
     conn = sqlite3.connect('yourdata.db')
     conn.row_factory = sqlite3.Row
     return conn
 
-def get_team_abbr(lineup):
-    conn = get_db_connection()
-    for player in lineup.values():
-        if player:
-            row = conn.execute("SELECT Team FROM my_table WHERE Player = ?", (player,)).fetchone()
-            if row:
-                team_name = row['Team']
-                return TEAM_ABBR.get(team_name, team_name[:3].upper())
-    return "UNK"
+def get_team_abbr(team_name):
+    if not team_name:
+        return "UNK"
+    words = team_name.replace("-", " ").split()
+    # Use the first letter of up to 3 words, or the first 3 letters if only one word
+    if len(words) >= 3:
+        return ''.join(word[0].upper() for word in words[:3])
+    elif len(words) == 2:
+        return (words[0][0] + words[1][:2]).upper()
+    else:  # Only one word
+        return words[0][:3].upper()
+
 @app.route("/")
 def base():
     return render_template("base.html")
@@ -91,8 +94,24 @@ def h2h():
         'CrdR': (stat_sum(team1_players, 'CrdR'), stat_sum(team2_players, 'CrdR')),
     }
 
-    return render_template("h2h.html", team1=lineup1, team2=lineup2,
-                           team1_data=team1_players, team2_data=team2_players, stats=stats)
+    team1_name = lineup1.get('team_name', 'Team 1')
+    team2_name = lineup2.get('team_name', 'Team 2')
+    team1_abbr = get_team_abbr(team1_name)
+    team2_abbr = get_team_abbr(team2_name)
+
+
+    return render_template(
+        "h2h.html",
+        team1=lineup1, 
+        team2=lineup2,
+        team1_data=team1_players, 
+        team2_data=team2_players, 
+        stats=stats,
+        team1_name=team1_name, 
+        team2_name=team2_name,
+        team1_abbr=team1_abbr,
+        team2_abbr=team2_abbr
+    )
 
 @app.route("/players")
 def show_players():
@@ -142,14 +161,34 @@ def simulate():
     players2 = get_players(lineup2)
     conn.close()
 
-    return render_template("simulate.html",
-                           players1=players1, players2=players2,
-                           team1_abbr=get_team_abbr(lineup1),
-                           team2_abbr=get_team_abbr(lineup2))
+    team1_name = lineup1.get('team_name', 'Team 1')
+    team2_name = lineup2.get('team_name', 'Team 2')
+    team1_abbr = get_team_abbr(team1_name)
+    team2_abbr = get_team_abbr(team2_name)
+
+    return render_template(
+        "simulate.html",
+        players1=players1,
+        players2=players2,
+        team1_abbr=team1_abbr,
+        team2_abbr=team2_abbr,
+        team1_name=team1_name,
+        team2_name=team2_name
+    )
 
 @app.route("/run_simulation")
 def run_simulation():
     import random
+    
+    lineup1 = session.get('lineup1')
+    lineup2 = session.get('lineup2')
+    if not lineup1 or not lineup2:
+        return jsonify({'log': ["Lineups missing."]})
+
+    team1_name = lineup1.get('team_name', 'Team 1')
+    team2_name = lineup2.get('team_name', 'Team 2')
+    team1_abbr = get_team_abbr(team1_name)
+    team2_abbr = get_team_abbr(team2_name)
 
     def get_players(lineup):
         order = ['gk'] + [f'df{i}' for i in range(4)] + [f'mf{i}' for i in range(3)] + [f'fw{i}' for i in range(3)]
@@ -236,5 +275,5 @@ def run_simulation():
         else:
             log.append(f"{minute}'")
 
-    log.append(f"\n🏑 Final Score: Team 1 {team1['score']} - {team2['score']} Team 2")
+    log.append(f"\n🏑 Final Score: {team1_abbr} {team1['score']} - {team2['score']} {team2_abbr}")
     return jsonify({'log': log})
