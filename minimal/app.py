@@ -29,6 +29,9 @@ def get_team_abbr(lineup):
                 team_name = row['Team']
                 return TEAM_ABBR.get(team_name, team_name[:3].upper())
     return "UNK"
+@app.route("/")
+def base():
+    return render_template("base.html")
 
 @app.route("/lineup", methods=["GET", "POST"])
 def lineup():
@@ -93,10 +96,29 @@ def h2h():
 
 @app.route("/players")
 def show_players():
+    sort_by = request.args.get("sort_by", "Gls")  # standard: Gls
+    order = request.args.get("order", "desc").lower()  # standard: desc
+    allowed_columns = ["Player", "Age", "Team", "Gls", "xG", "npxG", "Ast", "CrdR", "CrdY", "Min"]
+    if sort_by not in allowed_columns:
+        sort_by = "Gls"
+    if order not in ["asc", "desc"]:
+        order = "desc"
+
     conn = get_db_connection()
-    rows = conn.execute("SELECT Player, Age, Pos, Team, Gls, Ast FROM 'my_table'").fetchall()
+    query = f"""
+        SELECT Player, Age, Pos, Team, Gls, xG, npxG, Ast, CrdR, CrdY, Min
+        FROM my_table
+        ORDER BY {sort_by} {order.upper()}
+    """
+    rows = conn.execute(query).fetchall()
     conn.close()
-    return render_template("players.html", rows=rows)
+    return render_template("players.html", rows=rows, current_sort=sort_by, current_order=order)
+
+    # conn = get_db_connection()
+    # query = f"SELECT Player, Age, Pos, Team, Gls, xG, npxG, Ast, CrdR, CrdY, min FROM my_table ORDER BY {sort_by} DESC"
+    # rows = conn.execute(query).fetchall()
+    # conn.close()
+    # return render_template("players.html", rows=rows)
 
 @app.route("/reset")
 def reset():
