@@ -1,0 +1,39 @@
+<!doctype html>
+<html>
+<head>
+    <title>{% block title %}My Football App{% endblock %}</title>
+    <style>
+        body {
+            background-color: #f6ffd3;
+            font-family: Arial, sans-serif;
+            padding: 40px;
+            text-align: center;
+        }
+        .nav {
+            margin-bottom: 30px;
+        }
+        .nav a {
+            margin: 0 10px;
+            padding: 8px 16px;
+            text-decoration: none;
+            color: white;
+            background-color: #007BFF;
+            border-radius: 4px;
+        }
+        .nav a:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="nav">
+        <a href="{{ url_for('lineup') }}">Lineup Builder</a>
+        <a href="{{ url_for('h2h') }}">H2H Compare</a>
+        <a href="{{ url_for('show_players') }}">Players Table</a>  <!-- if you have /players -->
+        <a href="{{ url_for('reset') }}">Reset Lineups</a>
+
+    </div>
+
+    {% block content %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}Players Table{% endblock %}
+
+{% block content %}
+<div style="text-align: left;">
+    <h1>Dictionary</h1>
+    <ul style="margin-left: 0; padding-left: 0;">
+        <li>Pos = Position</li>
+        <li>Gls = Goals</li>
+        <li>xG = Expected Goals</li>
+        <li>
+            npxG = Non-Penalty Expected Goals
+            (<a href="https://andysbetclub.co.uk/strategies/what-is-npxg-football/" target="_blank">read more here</a>)
+        </li>
+        <li>Ast = Assist</li>
+        <li>CrdR = Red Card</li>
+        <li>CrdY = Yellow Card</li>
+        <li>min = Total Minutes Played</li>
+    </ul>
+</div>
+
+<h1>Premier League Player Stats</h1>
+<table border="1" style="margin: auto;">
+    <tr>
+        {% for col in rows[0].keys() %}
+            {% set new_order = 'asc' if current_order == 'desc' and current_sort == col else 'desc' %}
+            <th>
+                <a href="{{ url_for('show_players', sort_by=col, order=new_order) }}">
+                    {{ col }}
+                    {% if current_sort == col %}
+                        {% if current_order == 'asc' %}
+                            ▲
+                        {% else %}
+                            ▼
+                        {% endif %}
+                    {% endif %}
+                </a>
+            </th>
+        {% endfor %}
+    </tr>
+    {% for row in rows %}
+    <tr>
+        {% for col in row.keys() %}
+            <td>{{ row[col] }}</td>
+        {% endfor %}
+    </tr>
+    {% endfor %}
+</table>
+{% endblock %}

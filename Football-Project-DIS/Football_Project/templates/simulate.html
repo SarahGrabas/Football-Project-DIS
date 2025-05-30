@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+
+{% block title %}Match Simulation{% endblock %}
+
+{% block content %}
+
+<style>
+  #scoreboard-wrapper {
+    position: relative;
+    display: flex;
+    flex-direction: column;      /* stack vertically */
+    align-items: center;         /* center children */
+    margin-top: 30px;
+  }
+
+  #scoreboard-container {
+    position: relative;
+    width: 720px;
+    margin-bottom: 20px;         /* space before log */
+  }
+
+  #log-container {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    margin-top: 10px;
+  }
+
+  #log {
+    font-family: monospace;
+    background: #f8f8f8;
+    border: 1px solid #ccc;
+    padding: 15px;
+    height: 300px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    line-height: 1;
+    width: 80%;
+    max-width: 800px;
+  }
+
+  #start-btn {
+    padding: 10px 20px;
+    font-size: 1em;
+    margin-top: 20px;
+  }
+
+  #final-score {
+    font-weight: bold;
+    font-size: 1.2em;
+    text-align: center;
+    margin-top: 30px;
+    padding: 10px;
+    background-color: #e0f7fa;
+    border: 2px solid #00acc1;
+    border-radius: 8px;
+    display: none;
+    width: 50%;
+    margin-left: auto;
+    margin-right: auto;
+  }
+</style>
+
+<h1>Match Simulation</h1>
+<button id="start-btn">Start Match</button>
+
+<div id="scoreboard-wrapper">
+  <div id="scoreboard-container">
+    <!-- Scoreboard background -->
+    <div id="scoreboard-ui" style="
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: 'Arial Black', sans-serif;
+      background: linear-gradient(to right, #0033cc 50%, #cc0000 50%);
+      color: white;
+      padding: 15px 40px;
+      height: 60px;
+      border-radius: 12px;
+      font-size: 2.5em;
+      position: relative;
+      z-index: 1;
+    ">
+      <!-- Team 1 -->
+      <div style="display: flex; align-items: center;">
+        <span id="team1-name">{{ team1_abbr }}</span>
+        <span id="team1-score" style="
+          font-size: 4em;
+          margin-left: 20px;
+          line-height: 1;
+          position: relative;
+          top: -10px;
+        ">0</span>
+      </div>
+
+      <!-- Team 2 -->
+      <div style="display: flex; align-items: center;">
+        <span id="team2-score" style="
+          font-size: 4em;
+          margin-right: 20px;
+          line-height: 1;
+          position: relative;
+          top: -10px;
+        ">0</span>
+        <span id="team2-name">{{ team2_abbr }}</span>
+      </div>
+    </div>
+
+    <!-- Floating league logo -->
+    <img src="{{ url_for('static', filename='premierleagueløve.png') }}"
+         alt="Leagu Logo"
+         style="
+           height: 130px;
+           position: absolute;
+           top: -30px;
+           left: 50%;
+           transform: translateX(-50%);
+           z-index: 2;
+           filter: drop-shadow(0 0 0 black);
+         " />
+  </div>
+
+  <!-- Log under the scoreboard -->
+  <div id="log-container">
+    <div id="log"></div>
+  </div>
+
+  <div id="final-score"></div>
+</div>
+
+<script>
+  const startBtn = document.getElementById("start-btn"); // <-- flyt udenfor så den er tilgængelig overalt
+
+  startBtn.addEventListener("click", function () {
+    startBtn.disabled = true; // Deaktiver knappen straks
+
+    fetch("/run_simulation")
+      .then(response => response.json())
+      .then(data => {
+        const logEl = document.getElementById("log");
+        const score1El = document.getElementById("team1-score");
+        const score2El = document.getElementById("team2-score");
+        const finalScoreEl = document.getElementById("final-score");
+
+        logEl.innerHTML = "";
+        finalScoreEl.style.display = "none";
+        score1El.innerText = "0";
+        score2El.innerText = "0";
+
+        let i = 0, team1Score = 0, team2Score = 0;
+        const interval = setInterval(() => {
+          if (i < data.log.length) {
+            const line = data.log[i];
+            logEl.innerHTML += line + "\n";
+            logEl.scrollTop = logEl.scrollHeight;
+
+            if (line.includes("scores for Team 1")) {
+              team1Score++;
+              score1El.innerText = team1Score;
+            } else if (line.includes("scores for Team 2")) {
+              team2Score++;
+              score2El.innerText = team2Score;
+            }
+            i++;
+          } else {
+            clearInterval(interval);
+            const finalLine = data.log[data.log.length - 1];
+            finalScoreEl.innerText = finalLine.replace("🏁", "�
